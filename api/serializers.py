@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from .models import Product, Profile, Basket, Order, Address
+from .base64 import decode_base64
 
 
 class UserCreateSerializer(serializers.ModelSerializer):
@@ -17,9 +18,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
 
 class ProductsListSerializer(serializers.ModelSerializer):
+	country = serializers.SerializerMethodField()
+
 	class Meta:
 		model = Product
-		fields = ['id', 'name', 'price', 'img', 'date_added', 'stock',]
+		fields = ["id","name", "price", "img","stock", "date_added","country"]
+	def get_country(self, obj):
+		return "%s"%(obj.origin.country)	
 
 class ProductHistorySerializer(serializers.ModelSerializer):
 	class Meta:
@@ -27,9 +32,14 @@ class ProductHistorySerializer(serializers.ModelSerializer):
 		fields = ['name', 'price']
 
 class ProductDetailsSerializer(serializers.ModelSerializer):
+	country = serializers.SerializerMethodField()
+
 	class Meta:
 		model = Product
-		fields = ['id', 'name', 'price', 'img','stock', 'description', 'date_added']
+		fields = ["id","name", "price", "img","stock", "description", "date_added", "country"]
+
+	def get_country(self, obj):
+		return "%s"%(obj.origin.country)
 		
 class AddressSerializer(serializers.ModelSerializer):
 	class Meta:
@@ -46,12 +56,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
-	addresses = AddressSerializer(many=True)
+	# addresses = AddressSerializer(many=True)
 	order_history = serializers.SerializerMethodField()
+
 
 	class Meta:
 		model = Profile
-		fields = ["user","phone","gender","age","image","addresses", "order_history"]
+		fields = ["user","phone","gender","age", "order_history"]
 
 	def update(self, instance, validated_data):
 		"""
@@ -60,6 +71,9 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 		"""
 		user_field = validated_data.pop('user', None)
 		temp_user_serializer = UserSerializer()
+		# profile_image = validated_data['image']
+		# instance.image = decode_base64(profile_image)
+		# instance.save()
 		super().update(instance, validated_data)
 		super(UserSerializer, temp_user_serializer).update(instance.user, user_field)
 		return instance
@@ -81,7 +95,6 @@ class BasketSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
 	baskets= BasketSerializer(many=True)
 	
-
 	class Meta:
 		model = Order
 		fields = ["id", "order_ref", "customer", "address",  "baskets", "date_time", "total"]

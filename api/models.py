@@ -6,6 +6,10 @@ from django.dispatch import receiver
 
 
 class Product(models.Model):
+	CATEGORY = (
+		("Fruit", "Fruit"),
+		("Vegetable", "Vegetable")
+	)
 	name=models.CharField(max_length=120)
 	price=models.DecimalField(max_digits=6, decimal_places=3, validators=[MinValueValidator(0.0)])
 	img=models.ImageField()
@@ -13,9 +17,17 @@ class Product(models.Model):
 	description=models.TextField()
 	active=models.BooleanField(default=True)
 	date_added=models.DateField(auto_now=True)
+	origin = models.ForeignKey("Origin", null=True, related_name="products", on_delete=models.SET_NULL)
+	category = models.CharField(choices=CATEGORY, max_length=50, null=True, blank=True)
 
 	def __str__ (self):
 		return self.name
+
+class Origin(models.Model):
+	country = models.CharField(max_length=100)
+
+	def __str__(self):
+		return self.country
 
 
 class Profile(models.Model):
@@ -39,11 +51,12 @@ def create_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user= instance)
 
 class Address(models.Model):
+	profile = models.ForeignKey("Profile",on_delete=models.CASCADE, null=True, related_name='addresses')
+	name = models.CharField(max_length=150, default="Home")
 	area = models.CharField(max_length=150)
 	street = models.CharField(max_length=200)
 	block = models.CharField(max_length=50)
 	optional = models.CharField(max_length=200)
-	profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name='addresses')
 
 class Order(models.Model):
 	order_ref = models.CharField(max_length=10)
