@@ -51,11 +51,12 @@ def create_profile(sender, instance, created, **kwargs):
         Profile.objects.create(user= instance)
 
 class Address(models.Model):
-	profile = models.ForeignKey("Profile",on_delete=models.CASCADE, null=True, related_name='addresses')
+	profile = models.ForeignKey("Profile",on_delete=models.CASCADE, null=True, blank=True, related_name='addresses')
 	name = models.CharField(max_length=150, default="Home")
 	area = models.CharField(max_length=150)
 	street = models.CharField(max_length=200)
 	block = models.CharField(max_length=50)
+	building_number = models.CharField(max_length=50)
 	optional = models.CharField(max_length=200)
 
 class Order(models.Model):

@@ -56,13 +56,13 @@ class UserSerializer(serializers.ModelSerializer):
 
 class UpdateProfileSerializer(serializers.ModelSerializer):
 	user = UserSerializer()
-	# addresses = AddressSerializer(many=True)
+	addresses = serializers.SerializerMethodField()
 	order_history = serializers.SerializerMethodField()
 
 
 	class Meta:
 		model = Profile
-		fields = ["user","phone","gender","age", "order_history"]
+		fields = ["user","phone","gender","age", "order_history", "addresses"]
 
 	def update(self, instance, validated_data):
 		"""
@@ -78,10 +78,13 @@ class UpdateProfileSerializer(serializers.ModelSerializer):
 		super(UserSerializer, temp_user_serializer).update(instance.user, user_field)
 		return instance
 
+	def get_addresses(self, obj):
+		addresses = AddressSerializer(obj.addresses.all(), many=True) 
+		return addresses.data
+
 	def get_order_history(self, obj):
 		orders = OrderSerializer(obj.user.orders.all().order_by('-date_time'), many=True)
 		return orders.data
-
 
 
 class BasketSerializer(serializers.ModelSerializer):
